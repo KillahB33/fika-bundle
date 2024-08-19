@@ -68,7 +68,7 @@ jobs:
 
       - name: Unzip Fika-Plugin Assets
         run: |
-          unzip tmp/${{ env.plugin_file_name }} -d assets/
+          unzip tmp/${{ env.plugin_file_name }} -d assets/*
 
       - name: Create zip of all assets
         run: |
