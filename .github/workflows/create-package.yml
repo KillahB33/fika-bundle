@@ -73,7 +73,7 @@ jobs:
       - name: Create zip of all assets
         run: |
           mkdir -p release
-          zip -r release/fika-bundle-${{ env.latest_release_server }}.zip assets/
+          zip -r release/fika-bundle.zip assets/
 
       - name: Create GitHub Release
         uses: "marvinpinto/action-automatic-releases@latest"
