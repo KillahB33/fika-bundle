@@ -59,16 +59,17 @@ jobs:
 
       - name: Download Fika-Plugin Assets
         run: |
-          mkdir -p assets/fika-plugin
+          mkdir tmp
+          mkdir assets
           curl -L "https://github.com/project-fika/Fika-Plugin/releases/download/${{ env.latest_release_plugin }}/${{ env.plugin_file_name }}" -o tmp/fika-plugin/${{ env.plugin_file_name }}
 
       - name: Unzip Fika-Server Assets
         run: |
-          unzip tmp/fika-server/fika-server.zip -d assets/
+          unzip tmp/fika-server.zip -d assets/
 
       - name: Unzip Fika-Plugin Assets
         run: |
-          unzip tmp/fika-plugin/${{ env.plugin_file_name }} -d assets/
+          unzip tmp/${{ env.plugin_file_name }} -d assets/
 
       - name: Create zip of all assets
         run: |
