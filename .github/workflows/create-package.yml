@@ -48,12 +48,20 @@ jobs:
       - name: Download Fika-Server Assets
         run: |
           mkdir -p assets/fika-server
-          curl -L "https://github.com/project-fika/Fika-Server/releases/download/${{ env.latest_release_server }}/asset-name.zip" -o assets/fika-server/asset-name.zip
+          curl -L "https://github.com/project-fika/Fika-Server/releases/download/${{ env.latest_release_server }}/fika-server.zip" -o assets/fika-server/fika-server.zip
 
       - name: Download Fika-Plugin Assets
         run: |
           mkdir -p assets/fika-plugin
           curl -L "https://github.com/project-fika/Fika-Plugin/releases/download/${{ env.latest_release_plugin }}/plugin-asset-name.zip" -o assets/fika-plugin/plugin-asset-name.zip
+
+      - name: Unzip Fika-Server Assets
+        run: |
+          unzip assets/fika-server/fika-server.zip -d assets/
+
+      - name: Unzip Fika-Plugin Assets
+        run: |
+          unzip assets/fika-plugin/plugin-asset-name.zip -d assets/
 
       - name: Create zip of all assets
         run: |
@@ -61,11 +69,13 @@ jobs:
           zip -r release/fika-bundle-${{ env.latest_release_server }}.zip assets/
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          tag_name: ${{ env.latest_release_server }}
-          release_name: "Fika Bundle ${{ env.latest_release_server }}"
-          assets: release/fika-bundle-${{ env.latest_release_server }}.zip
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: ${{ env.latest_release_server }}
+          prerelease: false
+          title: "Fika Bundle ${{ env.latest_release_server }}"
+          files: release/fika-bundle-${{ env.latest_release_server }}.zip
 
       - name: Update Last Known Fika-Server Release
         run: echo "${{ env.latest_release_server }}" > last_release_server.txt
