@@ -55,25 +55,25 @@ jobs:
       - name: Download Fika-Server Assets
         run: |
           mkdir -p assets/fika-server
-          curl -L "https://github.com/project-fika/Fika-Server/releases/download/${{ env.latest_release_server }}/fika-server.zip" -o assets/fika-server/fika-server.zip
+          curl -L "https://github.com/project-fika/Fika-Server/releases/download/${{ env.latest_release_server }}/fika-server.zip" -o tmp/fika-server/fika-server.zip
 
       - name: Download Fika-Plugin Assets
         run: |
           mkdir -p assets/fika-plugin
-          curl -L "https://github.com/project-fika/Fika-Plugin/releases/download/${{ env.latest_release_plugin }}/${{ env.plugin_file_name }}" -o assets/fika-plugin/${{ env.plugin_file_name }}
+          curl -L "https://github.com/project-fika/Fika-Plugin/releases/download/${{ env.latest_release_plugin }}/${{ env.plugin_file_name }}" -o tmp/fika-plugin/${{ env.plugin_file_name }}
 
       - name: Unzip Fika-Server Assets
         run: |
-          unzip assets/fika-server/fika-server.zip -d assets/
+          unzip tmp/fika-server/fika-server.zip -d assets/
 
       - name: Unzip Fika-Plugin Assets
         run: |
-          unzip assets/fika-plugin/${{ env.plugin_file_name }} -d assets/
+          unzip tmp/fika-plugin/${{ env.plugin_file_name }} -d assets/
 
       - name: Create zip of all assets
         run: |
           mkdir -p release
-          zip -r release/fika-bundle.zip assets/
+          zip -r release/fika-bundle.zip assets/*
 
       - name: Create GitHub Release
         uses: "marvinpinto/action-automatic-releases@latest"
