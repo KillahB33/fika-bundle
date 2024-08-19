@@ -1,0 +1,69 @@
+name: Check for New Fika Release
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour. Adjust as needed.
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get the Latest Release Info from Fika-Server
+        id: get_latest_release_server
+        run: |
+          latest_release_server=$(curl -s https://api.github.com/repos/project-fika/Fika-Server/releases/latest | jq -r '.tag_name')
+          echo "latest_release_server=$latest_release_server" >> $GITHUB_ENV
+
+      - name: Compare with Last Known Fika-Server Release
+        id: compare_release_server
+        run: |
+          last_release_server=$(cat last_release_server.txt || echo "none")
+          if [ "$last_release_server" != "${{ env.latest_release_server }}" ]; then
+            echo "New Fika-Server release found: ${{ env.latest_release_server }}"
+            echo "last_release_server=${{ env.latest_release_server }}" > last_release_server.txt
+            echo "new_release=true" >> $GITHUB_ENV
+          else
+            echo "No new Fika-Server release."
+            echo "new_release=false" >> $GITHUB_ENV
+
+      - name: Stop if No New Release
+        if: steps.compare_release_server.outputs.new_release != 'true'
+        run: exit 0
+
+      - name: Get the Latest Release Info from Fika-Plugin
+        id: get_latest_release_plugin
+        run: |
+          latest_release_plugin=$(curl -s https://api.github.com/repos/project-fika/Fika-Plugin/releases/latest | jq -r '.tag_name')
+          echo "latest_release_plugin=$latest_release_plugin" >> $GITHUB_ENV
+
+      - name: Download Fika-Server Assets
+        run: |
+          mkdir -p assets/fika-server
+          curl -L "https://github.com/project-fika/Fika-Server/releases/download/${{ env.latest_release_server }}/asset-name.zip" -o assets/fika-server/asset-name.zip
+
+      - name: Download Fika-Plugin Assets
+        run: |
+          mkdir -p assets/fika-plugin
+          curl -L "https://github.com/project-fika/Fika-Plugin/releases/download/${{ env.latest_release_plugin }}/plugin-asset-name.zip" -o assets/fika-plugin/plugin-asset-name.zip
+
+      - name: Create zip of all assets
+        run: |
+          mkdir -p release
+          zip -r release/fika-bundle-${{ env.latest_release_server }}.zip assets/
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.latest_release_server }}
+          release_name: "Fika Bundle ${{ env.latest_release_server }}"
+          assets: release/fika-bundle-${{ env.latest_release_server }}.zip
+
+      - name: Update Last Known Fika-Server Release
+        run: echo "${{ env.latest_release_server }}" > last_release_server.txt
+
+      - name: Cache Last Release Info
+        uses: actions/cache@v3
+        with:
+          path: last_release_server.txt
+          key: last-release-${{ env.latest_release_server }}
