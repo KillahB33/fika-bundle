@@ -1,6 +1,7 @@
 name: Check for New Fika Release
 
 on:
+  push:
   schedule:
     - cron: '0 * * * *'  # Runs every hour. Adjust as needed.
 
@@ -9,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Initialize Last Known Release File
+        run: |
+          if [ ! -f last_release_server.txt ]; then
+            echo "none" > last_release_server.txt
+          fi
+
       - name: Get the Latest Release Info from Fika-Server
         id: get_latest_release_server
         run: |
@@ -18,7 +25,7 @@ jobs:
       - name: Compare with Last Known Fika-Server Release
         id: compare_release_server
         run: |
-          last_release_server=$(cat last_release_server.txt || echo "none")
+          last_release_server=$(cat last_release_server.txt)
           if [ "$last_release_server" != "${{ env.latest_release_server }}" ]; then
             echo "New Fika-Server release found: ${{ env.latest_release_server }}"
             echo "last_release_server=${{ env.latest_release_server }}" > last_release_server.txt
