@@ -45,6 +45,13 @@ jobs:
           latest_release_plugin=$(curl -s https://api.github.com/repos/project-fika/Fika-Plugin/releases/latest | jq -r '.tag_name')
           echo "latest_release_plugin=$latest_release_plugin" >> $GITHUB_ENV
 
+      - name: Prepare Plugin File Name
+        id: prepare_plugin_file_name
+        run: |
+          # Remove the leading 'v' from the tag name for the plugin
+          plugin_file_name=$(echo "${{ env.latest_release_plugin }}" | sed 's/^v//')
+          echo "plugin_file_name=Fika.Release.${plugin_file_name}.zip" >> $GITHUB_ENV
+
       - name: Download Fika-Server Assets
         run: |
           mkdir -p assets/fika-server
@@ -53,7 +60,7 @@ jobs:
       - name: Download Fika-Plugin Assets
         run: |
           mkdir -p assets/fika-plugin
-          curl -L "https://github.com/project-fika/Fika-Plugin/releases/download/${{ env.latest_release_plugin }}/plugin-asset-name.zip" -o assets/fika-plugin/plugin-asset-name.zip
+          curl -L "https://github.com/project-fika/Fika-Plugin/releases/download/${{ env.latest_release_plugin }}/${{ env.plugin_file_name }}" -o assets/fika-plugin/${{ env.plugin_file_name }}
 
       - name: Unzip Fika-Server Assets
         run: |
@@ -61,7 +68,7 @@ jobs:
 
       - name: Unzip Fika-Plugin Assets
         run: |
-          unzip assets/fika-plugin/plugin-asset-name.zip -d assets/
+          unzip assets/fika-plugin/${{ env.plugin_file_name }} -d assets/
 
       - name: Create zip of all assets
         run: |
@@ -75,7 +82,7 @@ jobs:
           automatic_release_tag: ${{ env.latest_release_server }}
           prerelease: false
           title: "Fika Bundle ${{ env.latest_release_server }}"
-          files: release/fika-bundle-${{ env.latest_release_server }}.zip
+          files: release/fika-bundle.zip
 
       - name: Update Last Known Fika-Server Release
         run: echo "${{ env.latest_release_server }}" > last_release_server.txt
