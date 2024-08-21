@@ -19,7 +19,7 @@ jobs:
       - name: Get the Latest Release Info from This Repo
         id: get_latest_release_self
         run: |
-          latest_release_self=$(curl -s https://api.github.com/repos/KillahB33/YOUR-REPO-NAME/releases/latest | jq -r '.tag_name')
+          latest_release_self=$(curl -s https://api.github.com/repos/KillahB33/fika-bundle/releases/latest | jq -r '.tag_name')
           echo "latest_release_self=$latest_release_self" >> $GITHUB_ENV
 
       - name: Compare Release Versions
