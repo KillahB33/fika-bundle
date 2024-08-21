@@ -5,6 +5,7 @@ on:
     - cron: '0 * * * *'  # Runs every hour. Adjust as needed.
 
 jobs:
+  push:
   check-release:
     runs-on: ubuntu-latest
 
