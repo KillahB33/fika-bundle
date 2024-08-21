@@ -10,33 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Initialize Last Known Release File
-        run: |
-          if [ ! -f last_release_server.txt ]; then
-            echo "none" > last_release_server.txt
-          fi
-
       - name: Get the Latest Release Info from Fika-Server
         id: get_latest_release_server
         run: |
           latest_release_server=$(curl -s https://api.github.com/repos/project-fika/Fika-Server/releases/latest | jq -r '.tag_name')
           echo "latest_release_server=$latest_release_server" >> $GITHUB_ENV
 
-      - name: Compare with Last Known Fika-Server Release
-        id: compare_release_server
+      - name: Get the Latest Release Info from This Repo
+        id: get_latest_release_self
         run: |
-          last_release_server=$(cat last_release_server.txt)
-          if [ "$last_release_server" != "${{ env.latest_release_server }}" ]; then
+          latest_release_self=$(curl -s https://api.github.com/repos/KillahB33/YOUR-REPO-NAME/releases/latest | jq -r '.tag_name')
+          echo "latest_release_self=$latest_release_self" >> $GITHUB_ENV
+
+      - name: Compare Release Versions
+        id: compare_release_versions
+        run: |
+          if [ "${{ env.latest_release_server }}" != "${{ env.latest_release_self }}" ]; then
             echo "New Fika-Server release found: ${{ env.latest_release_server }}"
-            echo "last_release_server=${{ env.latest_release_server }}" > last_release_server.txt
             echo "new_release=true" >> $GITHUB_ENV
           else
             echo "No new Fika-Server release."
             echo "new_release=false" >> $GITHUB_ENV
-          fi
 
       - name: Stop if No New Release
-        if: steps.compare_release_server.outputs.new_release != 'true'
+        if: steps.compare_release_versions.outputs.new_release != 'true'
         run: exit 0
 
       - name: Get the Latest Release Info from Fika-Plugin
@@ -48,7 +45,6 @@ jobs:
       - name: Prepare Plugin File Name
         id: prepare_plugin_file_name
         run: |
-          # Remove the leading 'v' from the tag name for the plugin
           plugin_file_name=$(echo "${{ env.latest_release_plugin }}" | sed 's/^v//')
           echo "plugin_file_name=Fika.Release.${plugin_file_name}.zip" >> $GITHUB_ENV
 
@@ -68,7 +64,7 @@ jobs:
 
       - name: Unzip Fika-Plugin Assets
         run: |
-          unzip tmp/${{ env.plugin_file_name }} -d assets/*
+          unzip tmp/${{ env.plugin_file_name }} -d assets/
 
       - name: Create zip of all assets
         run: |
@@ -77,19 +73,10 @@ jobs:
           zip -r ../release/fika-bundle.zip ./*
 
       - name: Create GitHub Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: softprops/action-gh-release@v2
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: ${{ env.latest_release_server }}
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag_name: ${{ env.latest_release_server }}
           prerelease: false
-          title: "Fika Bundle ${{ env.latest_release_server }}"
+          name: "Fika Bundle ${{ env.latest_release_server }}"
           files: release/fika-bundle.zip
-
-      - name: Update Last Known Fika-Server Release
-        run: echo "${{ env.latest_release_server }}" > last_release_server.txt
-
-      - name: Cache Last Release Info
-        uses: actions/cache@v3
-        with:
-          path: last_release_server.txt
-          key: last-release-${{ env.latest_release_server }}
