@@ -1,11 +1,11 @@
 name: Check for New Fika Release
 
 on:
+  push:
   schedule:
     - cron: '0 * * * *'  # Runs every hour. Adjust as needed.
 
 jobs:
-  push:
   check-release:
     runs-on: ubuntu-latest
 
