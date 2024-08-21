@@ -80,10 +80,10 @@ jobs:
           zip -r ../release/fika-bundle.zip ./*
 
       - name: Create GitHub Release
-        uses: marvinpinto/action-automatic-releases@latest
+        uses: softprops/action-gh-release@v2
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: ${{ env.latest_release_server }}
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag_name: ${{ env.latest_release_server }}
           prerelease: false
-          title: "Fika Bundle ${{ env.latest_release_server }}"
+          name: "Fika Bundle ${{ env.latest_release_server }}"
           files: release/fika-bundle.zip
