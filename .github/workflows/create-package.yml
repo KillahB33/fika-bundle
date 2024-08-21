@@ -34,6 +34,7 @@ jobs:
           else
             echo "No new Fika-Server release."
             echo "new_release=false" >> $GITHUB_OUTPUT
+          fi
 
   process-release:
     needs: check-release
