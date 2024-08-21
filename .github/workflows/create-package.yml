@@ -31,6 +31,7 @@ jobs:
           else
             echo "No new Fika-Server release."
             echo "new_release=false" >> $GITHUB_ENV
+          fi
 
       - name: Stop if No New Release
         if: steps.compare_release_versions.outputs.new_release != 'true'
