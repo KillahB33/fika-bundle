@@ -31,12 +31,9 @@ jobs:
           if [ "${{ env.latest_release_server }}" != "${{ env.latest_release_self }}" ]; then
             echo "New Fika-Server release found: ${{ env.latest_release_server }}"
             echo "new_release=true" >> $GITHUB_ENV
-            echo "::set-output name=new_release::true"
           else
             echo "No new Fika-Server release."
-            echo "new_release=false" >> $GITHUB_ENV
-            echo "::set-output name=new_release::false"
-          fi
+            echo "new_release=false" >> $GITHUB_OUTPUT
 
   process-release:
     needs: check-release
