@@ -1,13 +1,15 @@
 name: Check for New Fika Release
 
 on:
-  push:
   schedule:
     - cron: '0 * * * *'  # Runs every hour. Adjust as needed.
 
 jobs:
   check-release:
     runs-on: ubuntu-latest
+
+    outputs:
+      status: ${{ steps.compare_release_versions.outputs.new_release }}
 
     steps:
       - name: Get the Latest Release Info from Fika-Server
@@ -28,15 +30,19 @@ jobs:
           if [ "${{ env.latest_release_server }}" != "${{ env.latest_release_self }}" ]; then
             echo "New Fika-Server release found: ${{ env.latest_release_server }}"
             echo "new_release=true" >> $GITHUB_ENV
+            echo "::set-output name=new_release::true"
           else
             echo "No new Fika-Server release."
             echo "new_release=false" >> $GITHUB_ENV
+            echo "::set-output name=new_release::false"
           fi
 
-      - name: Stop if No New Release
-        if: steps.compare_release_versions.outputs.new_release != 'true'
-        run: exit 0
+  process-release:
+    needs: check-release
+    if: needs.check-release.outputs.status == 'true'
+    runs-on: ubuntu-latest
 
+    steps:
       - name: Get the Latest Release Info from Fika-Plugin
         id: get_latest_release_plugin
         run: |
@@ -74,10 +80,10 @@ jobs:
           zip -r ../release/fika-bundle.zip ./*
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          tag_name: ${{ env.latest_release_server }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: ${{ env.latest_release_server }}
           prerelease: false
-          name: "Fika Bundle ${{ env.latest_release_server }}"
+          title: "Fika Bundle ${{ env.latest_release_server }}"
           files: release/fika-bundle.zip
